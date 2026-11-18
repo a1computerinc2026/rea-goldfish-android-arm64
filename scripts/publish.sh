@@ -26,6 +26,7 @@ if gh repo view "$USERNAME/$REPO" >/dev/null 2>&1; then
   git push -u origin main
 else
   echo "Creating public repository $USERNAME/$REPO and pushing."
+  git remote remove origin 2>/dev/null || true
   gh repo create "$USERNAME/$REPO" --public --source=. --remote=origin --push
 fi
 echo "Published: https://github.com/$USERNAME/$REPO"
