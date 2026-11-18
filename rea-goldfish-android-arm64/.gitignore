@@ -1,0 +1,12 @@
+# Build outputs / downloaded tools
+ghidra_opt
+decompile
+*.zip
+*.jar
+*.apk
+*.keystore
+*.log
+
+# Local editor / OS files
+.DS_Store
+*.swp
