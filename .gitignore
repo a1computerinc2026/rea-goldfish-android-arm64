@@ -1,4 +1,4 @@
-# Build outputs
+# Build outputs / downloaded tools
 ghidra_opt
 decompile
 *.zip
@@ -6,5 +6,7 @@ decompile
 *.apk
 *.keystore
 *.log
-# OS
+
+# Local editor / OS files
 .DS_Store
+*.swp

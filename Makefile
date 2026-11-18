@@ -1,13 +1,25 @@
-.PHONY: install verify uninstall clean
+.PHONY: install verify uninstall rea-install rea-verify rea-uninstall egm-install egm-verify egm-uninstall
 
-install:
-	bash scripts/install.sh
+install: rea-install egm-install
 
-verify:
-	bash scripts/verify.sh
+verify: rea-verify egm-verify
 
-uninstall:
-	bash scripts/uninstall.sh
+uninstall: egm-uninstall rea-uninstall
 
-clean:
-	rm -rf tools/ghidra tools/jadx-mcp tools/src tools/android-build 2>/dev/null || true
+rea-install:
+	bash rea/scripts/install.sh
+
+rea-verify:
+	bash rea/scripts/verify.sh
+
+rea-uninstall:
+	bash rea/scripts/uninstall.sh
+
+egm-install:
+	bash egm/scripts/install.sh
+
+egm-verify:
+	bash egm/scripts/verify.sh
+
+egm-uninstall:
+	bash egm/scripts/uninstall.sh

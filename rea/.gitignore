@@ -1,0 +1,10 @@
+# Build outputs
+ghidra_opt
+decompile
+*.zip
+*.jar
+*.apk
+*.keystore
+*.log
+# OS
+.DS_Store

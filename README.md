@@ -1,182 +1,140 @@
-> [!IMPORTANT]
-> This is the **Android/arm64 (Termux) setup for REA**, not REA itself.
-> Get REA at https://github.com/morluto/rea — this repo only installs and
-> customizes it so its engines run on Android.
+# REA + Goldfish (EGM) on Android — arm64
 
-# REA on Android (Termux, arm64)
+**One open-source project, two workflows, on a Termux phone.**
 
-**Turn your Android phone into a reverse-engineering workstation.** This project installs
-[REA](https://github.com/morluto/rea) and its analysis engines — **Ghidra, JADX, Kuna** —
-on **Termux / Android arm64**, where they normally refuse to run.
+| Component | What it gives you |
+| --- | --- |
+| **`rea/`** — [REA](https://github.com/morluto/rea) on Android/arm64 | Reverse engineering: Ghidra 12.1.3 (arm64 decompiler), JADX 1.5.6, Kuna 1.990, apktool, dex2jar, aapt, rizin. Exposes 255 tools to OpenCode. |
+| **`egm/`** — [Elephant-Goldfish Model](https://github.com/google/elephant-goldfish-model) on Android/arm64 | Design & review: 8 skills, 10 fresh-context Goldfish reviewer personas, and an `egm` orchestrator agent in OpenCode v2. |
 
-Everything here is open source (MIT). It contains **only installation glue and docs** —
-no proprietary tools, no cracked software. Ghidra, Kuna, JADX, REA, etc. keep their own
-licenses and are downloaded from their official sources.
+> **Relationship to the older GitHub project:** the REA-only version was previously uploaded to GitHub **without Goldfish**. This repository is the merged successor: it keeps the latest REA setup (including optional providers, browser/CDP and macOS platform docs) **and** adds the official EGM/Goldfish bundle, adapted to work with the OpenCode v2 installed on this device.
 
-<!-- ADD A SCREENSHOT HERE: put a PNG in docs/ and link it, e.g.
-![screenshot](docs/screenshot.png) -->
-
----
-
-## What you get
-
-| Engine | License | What it does |
-| --- | --- | --- |
-| **Ghidra** 12.1.3 | Apache-2.0 | Decompile native code (`.so`, ELF, etc.) to C-like pseudocode |
-| **JADX** 1.5.6 + bridge | Apache-2.0 | Decompile Android APKs to readable Java |
-| **Kuna** 1.990 | Apache-2.0 | Fast native decompiler (optional, via proot) |
-| **apktool, dex2jar, aapt, apksigner** | GPL/Apache | Build, decode and sign APKs |
-| **rizin, radare2, binutils** | GPL | Disassembly, ELF inspection |
-
-**Not included (and why):** Hopper and IDA Pro are **proprietary commercial products**.
-They can't legally be installed or redistributed here. Kuna and Ghidra are the free,
-open-source alternatives.
-
----
+Everything here is **installation glue and documentation** — no proprietary tools, no cracked software. Upstream projects keep their own licenses (see [ATTRIBUTION.md](ATTRIBUTION.md)).
 
 ## Requirements
 
-- **Android device with Termux** (arm64 / aarch64). No root needed.
-- About **1.5 GB** free space (Ghidra is ~550 MB, plus build tools).
-- A GitHub account if you want to publish this project (not needed to use it).
+- Android device, **arm64 / aarch64**, with Termux from F-Droid or GitHub (no root).
+- `python3`, `node`, `npm`, `openjdk-21`, `git` — all installed by the scripts via `pkg`/`npm`.
+- ~1.5 GB free space (Ghidra ≈ 550 MB plus build tools).
+- OpenCode v2 (the EGM installer targets v2; REA's MCP server works with it).
 
----
-
-## Install (beginner, step by step)
-
-1. **Install Termux** from [F-Droid](https://f-droid.org/packages/com.termux/) or GitHub
-   (the Play Store version is outdated).
-2. Open Termux and run:
-
-   ```bash
-   pkg update -y
-   pkg install -y git
-   git clone https://github.com/YOUR-USERNAME/rea-android-arm64.git
-   cd rea-android-arm64
-   bash scripts/install.sh
-   ```
-
-   The installer is **idempotent** — running it again is safe. It:
-
-   - installs Termux packages (Java 21, Ghidra's dependencies, JADX, apktool, rizin, …)
-   - installs REA (`npm i -g rea-agents@6.9.0`)
-   - downloads Ghidra and **builds the arm64 decompiler** from source (no Docker needed)
-   - downloads the pinned JADX bridge and verifies its SHA-256
-   - applies the **Android→Linux platform shim** so REA's engines pass its checks
-   - writes the environment and registers REA in **OpenCode**
-
-3. **Check it worked:**
-
-   ```bash
-   bash scripts/verify.sh
-   ```
-
-   You want `healthy: true` and `OK` on `ghidra`, `jadx`, `kuna`.
-
-4. **Restart OpenCode** (close and reopen the app) so it loads the new MCP server.
-
----
-
-## Use it
+## Quick start
 
 ```bash
-# make sure the environment is loaded (already added to ~/.bashrc)
+git clone https://github.com/<YOUR-USERNAME>/rea-goldfish-android-arm64.git
+cd rea-goldfish-android-arm64
+bash scripts/install-all.sh
+bash scripts/verify-all.sh       # want healthy: true for both
+```
+
+Then **fully restart OpenCode** so it loads the REA MCP server and the EGM skills/agents.
+
+### Install only one component
+
+```bash
+bash rea/scripts/install.sh      # or: make rea-install
+bash egm/scripts/install.sh      # or: make egm-install
+```
+
+## Use
+
+**Reverse engineering (REA)** — after restart, just ask OpenCode:
+
+```text
+Decompile ~/Download/libtarget.so with Ghidra and explain the main function.
+Inspect ~/Download/app.apk: manifest, classes and signature.
+```
+
+Or from Termux:
+
+```bash
 . ~/.rea-env.sh
-
-# decompile a native library with Ghidra
-rea analyze path/to/lib.so --provider ghidra --format json
-
-# decompile one function
-rea decompile path/to/lib.so --procedure main --provider ghidra --format json
-
-# inspect an APK (package, manifest, classes, signatures)
-rea inspect-android-package path/to/app.apk --format json
-rea inspect-android-class  path/to/app.apk com.example.Foo --format json
-rea inspect-apk-signature  path/to/app.apk --format json
-
-# or use the engines directly
-jadx path/to/app.apk -d out        # APK -> Java source
-apktool d path/to/app.apk -o out   # APK -> resources + manifest
-d2j-dex2jar path/to/app.apk        # APK -> JAR
-rizin -A path/to/lib.so            # disassembly
+rea analyze libtarget.so --provider ghidra --format json
 ```
 
-Inside **OpenCode**, after the restart, REA exposes **255 tools** (`open_binary`,
-`inspect_android_package`, `decompile`, …). Just ask the agent to analyze a file.
+**Design / review (Goldfish)** — select the `egm` agent or use a slash command:
 
----
-
-## How the arm64 magic works (short version)
-
-1. **Ghidra's release only ships x86-64 decompiler code.** On arm64 the Java side runs
-   but decompiling fails. Fix: compile Ghidra's decompiler from source for arm64 with
-   Termux's `clang/g++` and drop it into `Ghidra/Features/Decompiler/os/linux_arm_64/`.
-   (`toolchain/build-decompiler.sh` does this.)
-2. **REA checks `process.platform === "linux"`** for its engine providers, but Node on
-   Android reports `"android"`. Fix: a 10-line shim in REA's launcher makes it see
-   `"linux"` (`toolchain/rea-android-shim.cjs`, applied by `install.sh`).
-3. **JADX needs a specific bridge JAR.** `install.sh` downloads the version REA pins
-   (0.7.1) and verifies its SHA-256.
-
-That's it. Everything else is standard `pkg`/`npm` installs.
-
----
-
-## Project layout
-
+```text
+/egm-brainstorm Add offline export to the app.
+/egm-draft
+/egm-review design_draft.md
+/egm-drift-report docs/designs/
 ```
-rea-android-arm64/
-├── README.md              ← you are here
-├── LICENSE                ← MIT (this repo only)
-├── CONTRIBUTING.md        ← how to help
-├── CHANGELOG.md
-├── Makefile               ← make install / verify / uninstall
+
+## Layout
+
+```text
+rea-goldfish-android-arm64/
+├── README.md                 ← you are here
+├── ATTRIBUTION.md            # upstream licenses & credits
+├── LICENSE                   # MIT (installation glue only)
+├── Makefile                  # make install / verify / uninstall
 ├── scripts/
-│   ├── install.sh         ← one-shot installer (idempotent)
-│   ├── verify.sh          ← health check
-│   └── uninstall.sh       ← undo
-├── toolchain/
-│   ├── rea-env.sh         ← environment variables
-│   ├── rea-android-shim.cjs
-│   ├── build-decompiler.sh
-│   ├── wrappers/          ← kuna, jadx, ghidra-headless
-│   └── ghidra/decompiler/ ← placeholder (built by install.sh)
-└── patches/
-    └── rea.mjs            ← reference copy of the patched REA launcher
+│   ├── install-all.sh        # install both components
+│   ├── verify-all.sh         # verify both components
+│   └── uninstall-all.sh
+├── rea/                      # latest REA setup (from rea-android-arm64)
+│   ├── README.md             # full REA docs, troubleshooting, usage
+│   ├── scripts/              # install.sh, verify.sh, uninstall.sh, optional providers
+│   ├── toolchain/            # env, shim, arm64 decompiler build, wrappers
+│   ├── docs/                 # platform support matrix
+│   ├── platform/macos/       # macOS setup (not usable on a phone)
+│   └── patches/
+└── egm/                      # official EGM (Goldfish) bundle
+    ├── README.md             # full EGM docs
+    ├── scripts/              # install.sh, verify.sh, uninstall.sh
+    ├── toolchain/            # egm-env.sh, V2 installer + verifier (Python stdlib)
+    ├── overlay/docs/         # OpenCode v2 / Android integration guide
+    └── vendor/egm/           # unmodified official EGM assets + SOURCE_COMMIT
 ```
 
----
-
-## Troubleshooting
-
-- **`rea: command not found`** → `npm i -g rea-agents@6.9.0`, then restart your shell.
-- **`ghidra-native_decompiler` fails in `rea doctor`** → re-run `bash scripts/install.sh`
-  (it rebuilds the decompiler) or run `bash toolchain/build-decompiler.sh`.
-- **JADX JAR SHA mismatch** → delete `~/tools/jadx-mcp/*.jar` and re-run the installer.
-- **`aapt`/`aapt2` "attribute not found"** → you need a framework jar; the installer
-  fetches `android-34.jar` into `~/tools/android-build/`.
-- **OpenCode shows no REA tools** → fully close and reopen OpenCode after installing.
-
----
-
-## Uninstall
+## Verification
 
 ```bash
-bash scripts/uninstall.sh
-# then optionally:
-pkg uninstall jadx apktool dex2jar rizin radare2 binutils aapt aapt2 apksigner
-npm uninstall -g rea-agents
+bash rea/scripts/verify.sh   # healthy: true + OK on ghidra/jadx/kuna
+bash egm/scripts/verify.sh   # healthy: true + skills/agents/commands live
 ```
 
----
+Both checks are non-destructive and can be run any time. EGM's installer merges
+into `opencode.json` additively and verifies the REA MCP entry survives; its
+uninstaller restores the previous config and any legacy plugin from a timestamped
+backup under `~/.local/share/egm-android-arm64/backups/`.
 
-## Credits & licenses
+## Publishing to GitHub
 
-- [REA](https://github.com/morluto/rea) — reverse-engineering agent (its own license).
-- [Ghidra](https://github.com/NationalSecurityAgency/ghidra) — Apache-2.0.
-- [JADX](https://github.com/skylot/jadx) — Apache-2.0; [jadx-headless-mcp](https://github.com/1013503897/jadx-headless-mcp) — Apache-2.0.
-- [Kuna](https://github.com/Noelo-Lab/kuna) — Apache-2.0.
-- apktool, dex2jar, rizin, radare2 — GPL/Apache.
-- This repository: **MIT** (installation glue + docs only).
+This folder is already a Git repository containing the original REA commit plus
+the merged update. Before pushing, replace `<YOUR-USERNAME>` with your GitHub
+handle.
 
-If this project helped you, consider starring it on GitHub. ⭐
+**Option A — publish as a new repository (recommended):**
+
+```bash
+cd rea-goldfish-android-arm64
+git remote add origin https://github.com/<YOUR-USERNAME>/rea-goldfish-android-arm64.git
+git branch -M main
+git push -u origin main
+```
+
+**Option B — update your existing REA-only repository** (only if its history
+matches this repo's history; otherwise use Option A):
+
+```bash
+cd rea-goldfish-android-arm64
+git remote add origin https://github.com/<YOUR-USERNAME>/rea-android-arm64.git
+git push origin master
+```
+
+Create the GitHub repository as **public** with **no** README/LICENSE added by
+GitHub (this repo already has them).
+
+## Limitations
+
+- Tool registration/health checks are not proof of a full workflow; model calls
+  need your authorization, and reviews do not replace tests or human judgment.
+- OpenCode v2 subagents are isolated child *sessions*, not process isolation.
+- Ghidra's decompiler is built locally from source for arm64; JADX/Kuna/REA keep
+  their own licenses. EGM is not an officially supported Google product.
+
+## Credits
+
+See [ATTRIBUTION.md](ATTRIBUTION.md). This repository's glue code is MIT.
