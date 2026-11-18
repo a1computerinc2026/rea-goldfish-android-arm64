@@ -21,7 +21,7 @@ Everything here is **installation glue and documentation** — no proprietary to
 ## Quick start
 
 ```bash
-git clone https://github.com/<YOUR-USERNAME>/rea-goldfish-android-arm64.git
+git clone https://github.com/a1computerinc2026/rea-goldfish-android-arm64.git
 cd rea-goldfish-android-arm64
 bash scripts/install-all.sh
 bash scripts/verify-all.sh       # want healthy: true for both
@@ -103,14 +103,13 @@ backup under `~/.local/share/egm-android-arm64/backups/`.
 ## Publishing to GitHub
 
 This folder is already a Git repository containing the original REA commit plus
-the merged update. Before pushing, replace `<YOUR-USERNAME>` with your GitHub
-handle.
+the merged update. GitHub username: `a1computerinc2026`.
 
 **Option A — publish as a new repository (recommended):**
 
 ```bash
 cd rea-goldfish-android-arm64
-git remote add origin https://github.com/<YOUR-USERNAME>/rea-goldfish-android-arm64.git
+git remote add origin https://github.com/a1computerinc2026/rea-goldfish-android-arm64.git
 git branch -M main
 git push -u origin main
 ```
@@ -120,7 +119,7 @@ matches this repo's history; otherwise use Option A):
 
 ```bash
 cd rea-goldfish-android-arm64
-git remote add origin https://github.com/<YOUR-USERNAME>/rea-android-arm64.git
+git remote add origin https://github.com/a1computerinc2026/rea-android-arm64.git
 git push origin master
 ```
 

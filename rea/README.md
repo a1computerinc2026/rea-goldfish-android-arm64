@@ -53,7 +53,7 @@ open-source alternatives.
    ```bash
    pkg update -y
    pkg install -y git
-   git clone https://github.com/YOUR-USERNAME/rea-goldfish-android-arm64.git
+   git clone https://github.com/a1computerinc2026/rea-goldfish-android-arm64.git
    cd rea-goldfish-android-arm64/rea   # or use: bash rea/scripts/install.sh from repo root
    bash scripts/install.sh
    ```
