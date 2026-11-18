@@ -1,9 +1,0 @@
-# Symbols
-* text=auto eol=lf
-*.sh text eol=lf
-*.cjs text eol=lf
-*.md text eol=lf
-*.json text eol=lf
-*.jar binary
-*.so binary
-*.apk binary

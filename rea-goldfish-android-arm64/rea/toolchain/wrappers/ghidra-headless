@@ -1,4 +1,0 @@
-#!/data/data/com.termux/files/usr/bin/bash
-# Ghidra 12.x headless for arm64 (native Termux JVM + arm64 decompiler).
-# GHIDRA_INSTALL_DIR is exported by rea-env.sh.
-exec "$GHIDRA_INSTALL_DIR/support/analyzeHeadless" "$@"
